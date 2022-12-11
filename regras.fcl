@@ -1,0 +1,103 @@
+// Block definition (there may be more than one block per file)
+FUNCTION_BLOCK teste
+
+// Define input variables
+VAR_INPUT
+    Velocidade : REAL;
+    Distancia : REAL;
+END_VAR
+
+// Define output variable
+VAR_OUTPUT
+    pressao_freio : REAL;
+END_VAR
+
+// Fuzzify input variable 'Temperature'
+FUZZIFY Distancia
+	TERM muito_perto := (0, 1) (20, 0); 
+    	TERM perto := (10, 0) (20, 1) (60,1) (130,0); 
+    	TERM longe := (60, 0) (100,1) (180,1) (350,0);
+    	TERM muito_longe := (250, 0) (350, 1) (500, 1);
+END_FUZZIFY
+
+// Fuzzify input variable 'Moisture'
+FUZZIFY Velocidade
+	TERM muito_lento := (0, 1) (5, 0);  
+    	TERM lento := (4, 0) (18, 1) (30,0);
+	TERM rapido := (20,0) (35,1) (43,1) (60,0);
+	TERM muito_rapido := (45, 0) (55, 1) (100,1);
+END_FUZZIFY
+
+// Defzzzify output variable 'ventilation'
+DEFUZZIFY pressao_freio
+	TERM muito_leve := (0,1) (10,1) (20,0);
+    	TERM leve := (10,0) (20,1) (50,0);
+    	TERM forte := (40,0) (60,1) (80,0);
+    	TERM muito_forte := (70,0) (88,1) (100,1);
+    // Use 'Center Of Gravity' defuzzification method
+    METHOD : COA;
+    // Default value is 0 (if no rule activates defuzzifier)
+    DEFAULT := 0;
+END_DEFUZZIFY
+
+RULEBLOCK No1
+    // Use 'min' for 'and' (also implicit use 'max'
+    // for 'or' to fulfill DeMorgan's Law)
+    AND : MIN;
+    // Use 'min' activation method
+    ACT : MIN;
+    // Use 'max' accumulation method
+    ACCU : MAX;
+	
+    RULE 1 : IF Velocidade IS muito_lento and Distancia is muito_perto
+	       THEN pressao_freio IS leve;
+
+	RULE 2 : IF Velocidade IS muito_lento and Distancia is perto
+		   THEN pressao_freio IS leve;
+
+	RULE 3 : IF Velocidade IS muito_lento and Distancia is longe
+		   THEN pressao_freio IS leve;
+
+	RULE 4 : IF Velocidade IS muito_lento and Distancia is muito_longe
+		   THEN pressao_freio IS muito_leve;
+
+	RULE 5 : IF Velocidade IS lento and Distancia is muito_perto
+		   THEN pressao_freio IS forte;
+
+	RULE 6 : IF Velocidade IS lento and Distancia is perto
+		   THEN pressao_freio IS forte;
+
+	RULE 7 : IF Velocidade IS lento and Distancia is longe
+		   THEN pressao_freio IS leve;
+
+	RULE 8 : IF Velocidade IS lento and Distancia is muito_longe
+		   THEN pressao_freio IS muito_leve;
+
+	RULE 9 : IF Velocidade IS rapido and Distancia is muito_perto
+		   THEN pressao_freio IS muito_forte;
+
+	RULE 10 : IF Velocidade IS rapido and Distancia is perto
+		   THEN pressao_freio IS forte;
+
+	RULE 11 : IF Velocidade IS rapido and Distancia is longe
+		   THEN pressao_freio IS leve;
+
+	RULE 12 : IF Velocidade IS rapido and Distancia is muito_longe
+		   THEN pressao_freio IS leve;
+
+	RULE 13 : IF Velocidade IS muito_rapido and Distancia is muito_perto
+		   THEN pressao_freio IS muito_forte;
+
+	RULE 14 : IF Velocidade IS muito_rapido and Distancia is perto
+		   THEN pressao_freio IS muito_forte;
+
+	RULE 15 : IF Velocidade IS muito_rapido and Distancia is longe
+		   THEN pressao_freio IS forte;
+
+	RULE 16 : IF Velocidade IS muito_rapido and Distancia is muito_longe
+		   THEN pressao_freio IS leve;
+
+	   
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK
